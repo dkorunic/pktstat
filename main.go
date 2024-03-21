@@ -23,12 +23,12 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net/netip"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -66,15 +66,28 @@ const (
 )
 
 var (
-	iface      = flag.String("iface", "any", "interface to read from")
-	snaplen    = flag.Int("snaplen", 0, "snaplen (if <= 0 uses 65535)")
-	bufferSize = flag.Int("bufsize", 8, "interface buffersize in MB")
-	filter     = flag.String("filter", "", "BPF filter")
-	addVLAN    = flag.Bool("add_vlan", false, "if true, add VLAN header")
-	timeout    = flag.Duration("timeout", 0, "timeout for packet capture")
+	GitTag    = ""
+	GitCommit = ""
+	GitDirty  = ""
+	BuildTime = ""
 )
 
+// init initializes the GitTag, GitCommit, GitDirty, and BuildTime variables.
+//
+// It trims leading and trailing white spaces from the values of GitTag, GitCommit,
+// GitDirty, and BuildTime.
+//
+//nolint:gochecknoinits
+func init() {
+	GitTag = strings.TrimSpace(GitTag)
+	GitCommit = strings.TrimSpace(GitCommit)
+	GitDirty = strings.TrimSpace(GitDirty)
+	BuildTime = strings.TrimSpace(BuildTime)
+}
+
 func main() {
+	parseFags()
+
 	undo, _ := maxprocs.Set()
 	defer undo()
 
@@ -87,12 +100,6 @@ func main() {
 			),
 		),
 	)
-
-	flag.Parse()
-
-	if *snaplen <= 0 {
-		*snaplen = 65535
-	}
 
 	log.Printf("Starting on interface %q", *iface)
 
