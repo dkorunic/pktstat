@@ -13,13 +13,14 @@ At the end of the execution program will display per-IP and per-protocol (IPv4, 
 
 ## Usage
 
-```
+```shell
 NAME
   pktstat
 
 FLAGS
   -?, --help               display help
   -v, --add_vlan           if true, add VLAN header
+  -j, --json               if true, output in JSON format
       --version            display program version
   -s, --snaplen INT        snaplen (if <= 0 uses 65535) (default: 0)
   -b, --bufsize INT        interface buffersize in MB (default: 8)
@@ -28,4 +29,8 @@ FLAGS
   -t, --timeout DURATION   timeout for packet capture (default: 0s)
 ```
 
-By default pktstat listens to all interfaces without any BPF filter. It is possible to specify interface with `--iface` and specify a BPF filter either including or excluding needed traffic, for instance `--filter "not port 22"`. Timeout `--timeout` will stop execution after a specified time, but it is also possible to interrupt program with Ctrl C, SIGTERM or SIGINT.
+By default pktstat listens to all interfaces without any BPF filter. It is possible to specify interface with `--iface` and specify a BPF filter either including or excluding needed traffic, for instance `--filter "not port 22"`.
+
+Timeout `--timeout` will stop execution after a specified time, but it is also possible to interrupt program with Ctrl C, SIGTERM or SIGINT.
+
+With `--json` it is possible to get traffic statistics in JSON format.
