@@ -11,6 +11,16 @@ pktstat is a work in progress simple replacement for ncurses-based [pktstat](htt
 
 At the end of the execution program will display per-IP and per-protocol (IPv4, IPv6, TCP, UDP, ICMPv4 and ICMPv6) statistics sorted by per-connection bps, packets and (source-IP:port, destination-IP:port) tuples.
 
+![Demo](demo.gif)
+
+## Requirements
+
+Sniffing traffic typically requires root privileges or CAP_NET_ADMIN and CAP_NET_RAW [capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html):
+
+```shell
+$ setcap cap_net_raw,cap_net_admin=eip pktstat
+```
+
 ## Usage
 
 ```shell
