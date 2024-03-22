@@ -25,7 +25,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/netip"
 	"os"
 	"os/signal"
 	"strings"
@@ -35,28 +34,8 @@ import (
 
 	"github.com/KimMachineGun/automemlimit/memlimit"
 	"github.com/cockroachdb/swiss"
-	"github.com/google/gopacket"
 	"go.uber.org/automaxprocs/maxprocs"
 )
-
-type statKey struct {
-	srcIP   netip.Addr
-	dstIP   netip.Addr
-	proto   gopacket.LayerType
-	srcPort uint16
-	dstPort uint16
-}
-
-type statEntry struct {
-	size    uint64
-	packets uint64
-	bitrate float64
-}
-
-type statChKey struct {
-	key  statKey
-	size uint64
-}
 
 const (
 	statsCapacity = 8192
@@ -125,8 +104,8 @@ func main() {
 				v = statEntry{}
 			}
 
-			v.size += k.size
-			v.packets++
+			v.Size += k.size
+			v.Packets++
 			statMap.Put(k.key, v)
 		}
 	}()
@@ -140,7 +119,7 @@ func main() {
 
 	go func() {
 		s := <-signalCh
-		fmt.Printf("Received %v signal, trying to exit...\n", s)
+		fmt.Fprintf(os.Stderr, "Received %v signal, trying to exit...\n", s)
 		cancel()
 		close(statCh)
 	}()
@@ -155,5 +134,9 @@ func main() {
 
 	wg.Wait()
 
-	outputStats(startTime, statMap, totalPackets, totalBytes)
+	if *jsonOutput {
+		outputJSON(startTime, statMap, totalPackets, totalBytes)
+	} else {
+		outputPlain(startTime, statMap, totalPackets, totalBytes)
+	}
 }

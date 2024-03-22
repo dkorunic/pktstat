@@ -39,10 +39,10 @@ const (
 )
 
 var (
-	iface, filter          *string
-	snaplen, bufferSize    *int
-	addVLAN, version, help *bool
-	timeout                *time.Duration
+	iface, filter                      *string
+	snaplen, bufferSize                *int
+	addVLAN, version, help, jsonOutput *bool
+	timeout                            *time.Duration
 )
 
 func parseFags() {
@@ -50,11 +50,16 @@ func parseFags() {
 
 	help = fs.Bool('?', "help", "display help")
 	addVLAN = fs.Bool('v', "add_vlan", "if true, add VLAN header")
+	jsonOutput = fs.Bool('j', "json", "if true, output in JSON format")
+
 	version = fs.BoolLong("version", "display program version")
+
 	snaplen = fs.Int('s', "snaplen", defaultSnapLen, "snaplen (if <= 0 uses 65535)")
 	bufferSize = fs.Int('b', "bufsize", defaultBufferSize, "interface buffersize in MB")
+
 	filter = fs.String('f', "filter", defaultBPFFilter, "BPF filter")
 	iface = fs.String('i', "iface", defaultIface, "interface to read from")
+
 	timeout = fs.Duration('t', "timeout", defaultTimeout, "timeout for packet capture")
 
 	var err error

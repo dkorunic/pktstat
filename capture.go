@@ -23,6 +23,7 @@ package main
 
 import (
 	"context"
+	"net/netip"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -31,6 +32,25 @@ import (
 const (
 	layersCapacity = 10
 )
+
+type statKey struct {
+	SrcIP   netip.Addr         `json:"srcIp"`
+	DstIP   netip.Addr         `json:"dstIp"`
+	Proto   gopacket.LayerType `json:"proto"`
+	SrcPort uint16             `json:"srcPort"`
+	DstPort uint16             `json:"dstPort"`
+}
+
+type statEntry struct {
+	Size    uint64  `json:"size"`
+	Packets uint64  `json:"packets"`
+	Bitrate float64 `json:"bitrate"`
+}
+
+type statChKey struct {
+	key  statKey
+	size uint64
+}
 
 // runCapture captures network packets and extracts relevant statistics.
 //
@@ -82,27 +102,27 @@ func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes *uint64
 		for _, t := range decodedLayers {
 			switch t {
 			case layers.LayerTypeIPv4:
-				k.srcIP = netip2Addr(ip4.SrcIP)
-				k.dstIP = netip2Addr(ip4.DstIP)
+				k.SrcIP = netip2Addr(ip4.SrcIP)
+				k.DstIP = netip2Addr(ip4.DstIP)
 			case layers.LayerTypeIPv6:
-				k.srcIP = netip2Addr(ip6.SrcIP)
-				k.dstIP = netip2Addr(ip6.DstIP)
+				k.SrcIP = netip2Addr(ip6.SrcIP)
+				k.DstIP = netip2Addr(ip6.DstIP)
 			case layers.LayerTypeTCP:
-				k.srcPort = uint16(tcp.SrcPort)
-				k.dstPort = uint16(tcp.DstPort)
-				k.proto = layers.LayerTypeTCP
+				k.SrcPort = uint16(tcp.SrcPort)
+				k.DstPort = uint16(tcp.DstPort)
+				k.Proto = layers.LayerTypeTCP
 			case layers.LayerTypeUDP:
-				k.srcPort = uint16(udp.SrcPort)
-				k.dstPort = uint16(udp.DstPort)
-				k.proto = layers.LayerTypeUDP
+				k.SrcPort = uint16(udp.SrcPort)
+				k.DstPort = uint16(udp.DstPort)
+				k.Proto = layers.LayerTypeUDP
 			case layers.LayerTypeICMPv4:
-				k.proto = layers.LayerTypeICMPv4
+				k.Proto = layers.LayerTypeICMPv4
 			case layers.LayerTypeICMPv6:
-				k.proto = layers.LayerTypeICMPv6
+				k.Proto = layers.LayerTypeICMPv6
 			}
 		}
 
-		if k.proto == 0 {
+		if k.Proto == 0 {
 			continue
 		}
 
