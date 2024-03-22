@@ -10,23 +10,8 @@ builds:
       -s -w -extldflags '-static'
     goos:
       - linux
-      - darwin
-      - windows
-      - freebsd
     goarch:
       - amd64
-      - arm
-      - arm64
-    goarm:
-      - 6
-      - 7
-    ignore:
-      - goos: windows
-        goarch: arm64
-      - goos: windows
-        goarch: arm
-universal_binaries:
-  - replace: true
 changelog:
   sort: asc
 archives:
@@ -37,9 +22,6 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format_overrides:
-      - goos: windows
-        format: zip
     files:
       - README.md
       - LICENSE
@@ -47,15 +29,15 @@ archives:
         dst: ""
         strip_parent: true
 checksum:
-  name_template: "checksums.txt"
+  disable: true
 snapshot:
   name_template: "{{ .Tag }}-next"
 nfpms:
-  - package_name: axfr2hosts
+  - package_name: pktstat
     vendor: Dinko Korunic
-    homepage: https://github.com/dkorunic/axfr2hosts
+    homepage: https://github.com/dkorunic/pktstat
     maintainer: Dinko Korunic <dkorunic@gmail.com>
-    description: Fetches one or more DNS zones via AXFR and dumps in Unix hosts format for local use
+    description: Ethernet interface traffic monitor
     license: MIT
     formats:
       - apk

@@ -66,7 +66,7 @@ func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes *uint64
 		default:
 		}
 
-		// AF-PACKET capture on Linux or regular PCAP wire capture on everything else
+		// AF_PACKET capture on Linux or regular PCAP wire capture on everything else
 		data, _, err := source.ZeroCopyReadPacketData()
 		if err != nil {
 			continue

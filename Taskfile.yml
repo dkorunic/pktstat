@@ -59,6 +59,10 @@ tasks:
       - task: fmt
       - golangci-lint run --timeout 5m
 
-  release:
+  release-linux:
     cmds:
-      - goreleaser release --clean -p 4
+      - docker run -e "GITHUB_TOKEN=$GITHUB_TOKEN" --entrypoint '' --rm -it -w '/src' -v "$(pwd):/src" 'goreleaser/goreleaser:latest' /bin/sh -c 'apk update && apk add libpcap-dev build-base linux-headers && goreleaser release --clean -p 1 --config .goreleaser-linux.yml'
+
+  release-darwin:
+    cmds:
+      - goreleaser release --clean -p 1 --config .goreleaser-darwin.yml
