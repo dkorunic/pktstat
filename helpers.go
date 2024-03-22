@@ -36,10 +36,9 @@ func netip2Addr(ip net.IP) netip.Addr {
 	return addr
 }
 
-// formatBitrate formats the bitrate value into a human-readable string based on different units.
+// formatBitrate formats the given bitrate value into a string representation.
 //
-// b: float64 - the bitrate value to be formatted
-// string - the formatted bitrate string
+// It takes a float64 value representing the bitrate and returns a string.
 func formatBitrate(b float64) string {
 	switch {
 	case b < Kbps:

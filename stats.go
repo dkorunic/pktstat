@@ -29,12 +29,20 @@ import (
 	"github.com/cockroachdb/swiss"
 )
 
-// outputStats generates statistics based on the provided inputs.
+const (
+	Bps  float64 = 1.0
+	Kbps         = 1000 * Bps
+	Mbps         = 1000 * Kbps
+	Gbps         = 1000 * Mbps
+	Tbps         = 1000 * Gbps
+)
+
+// outputStats calculates bitrates, sorts by bitrate, and outputs statistics.
 //
-// startTime: the time when the statistics collection started
-// statMap: a map containing the statistics data
-// totalPackets: total number of packets processed
-// totalBytes: total number of bytes processed
+// startTime: the start time to calculate duration
+// statMap: a map of statKey to statEntry
+// totalPackets: total number of packets
+// totalBytes: total number of bytes
 func outputStats(startTime time.Time, statMap *swiss.Map[statKey, statEntry], totalPackets uint64, totalBytes uint64) {
 	dur := time.Since(startTime).Seconds()
 
