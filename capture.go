@@ -100,6 +100,8 @@ func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes *uint64
 		var k statKey
 
 		for _, t := range decodedLayers {
+			k.Proto = t
+
 			switch t {
 			case layers.LayerTypeIPv4:
 				k.SrcIP = netip2Addr(ip4.SrcIP)
@@ -110,19 +112,14 @@ func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes *uint64
 			case layers.LayerTypeTCP:
 				k.SrcPort = uint16(tcp.SrcPort)
 				k.DstPort = uint16(tcp.DstPort)
-				k.Proto = layers.LayerTypeTCP
 			case layers.LayerTypeUDP:
 				k.SrcPort = uint16(udp.SrcPort)
 				k.DstPort = uint16(udp.DstPort)
-				k.Proto = layers.LayerTypeUDP
-			case layers.LayerTypeICMPv4:
-				k.Proto = layers.LayerTypeICMPv4
-			case layers.LayerTypeICMPv6:
-				k.Proto = layers.LayerTypeICMPv6
 			}
 		}
 
-		if k.Proto == 0 {
+		// non-IP traffic
+		if k.Proto == layers.LayerTypeEthernet {
 			continue
 		}
 

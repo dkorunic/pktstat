@@ -43,6 +43,8 @@ type statJSON struct {
 	statEntry
 }
 
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 // outputPlain generates output based on the statistics collected.
 //
 // startTime - the start time of the statistics collection.
@@ -58,7 +60,7 @@ func outputPlain(startTime time.Time, statMap *swiss.Map[statKey, statEntry], to
 		v, _ := statMap.Get(k)
 
 		fmt.Printf("bitrate: %v, packets: %d, bytes: %d, proto: %v, src: %v:%v, dst: %v:%v\n",
-			formatBitrate(v.Bitrate), v.Packets, v.Size, k.Proto, k.SrcIP, k.SrcPort, k.DstIP, k.DstPort)
+			formatBitrate(v.Bitrate), v.Packets, v.Size, k.Proto.String(), k.SrcIP, k.SrcPort, k.DstIP, k.DstPort)
 	}
 
 	fmt.Printf("\nRead total packets: %d, total bytes: %d in %0.2f seconds\n", totalPackets, totalBytes, dur)
@@ -85,7 +87,6 @@ func outputJSON(startTime time.Time, statMap *swiss.Map[statKey, statEntry], _ u
 		})
 	}
 
-	json := jsoniter.ConfigCompatibleWithStandardLibrary
 	out, _ := json.Marshal(statJSONs)
 
 	fmt.Printf("%v\n", string(out))
@@ -120,4 +121,21 @@ func calcBitrate(statMap *swiss.Map[statKey, statEntry], dur float64) []statKey 
 	})
 
 	return keySlice
+}
+
+// MarshalJSON marshals the statKey struct into a JSON byte slice.
+//
+// It returns a byte slice containing the JSON representation of the struct
+// and an error if any occurred during the marshaling process.
+func (s *statKey) MarshalJSON() ([]byte, error) {
+	type Alias statKey
+
+	// create a temporary struct to override Proto field serialization
+	return json.Marshal(&struct {
+		*Alias
+		Proto string `json:"proto"`
+	}{
+		Alias: (*Alias)(s),
+		Proto: s.Proto.String(),
+	})
 }
