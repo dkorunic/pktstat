@@ -29,6 +29,10 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
+const (
+	captureType = "PCAP"
+)
+
 // initCapture initializes a pcap handle with the given interface, snaplen, and filter.
 //
 // Parameters:

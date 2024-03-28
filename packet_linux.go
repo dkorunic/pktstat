@@ -36,6 +36,10 @@ import (
 	"golang.org/x/net/bpf"
 )
 
+const (
+	captureType = "AF_PACKET"
+)
+
 type afpacketHandle struct {
 	TPacket *afpacket.TPacket
 }

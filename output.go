@@ -127,9 +127,8 @@ func calcBitrate(statMap *swiss.Map[statKey, statEntry], dur float64) []statKey 
 //
 // It returns a byte slice containing the JSON representation of the struct
 // and an error if any occurred during the marshaling process.
-func (s *statKey) MarshalJSON() ([]byte, error) {
-	type Alias statKey
-
+func (s *statJSON) MarshalJSON() ([]byte, error) {
+	type Alias statJSON
 	// create a temporary struct to override Proto field serialization
 	return json.Marshal(&struct {
 		*Alias

@@ -79,7 +79,7 @@ func main() {
 		),
 	)
 
-	log.Printf("Starting on interface %q", *iface)
+	log.Printf("Starting on interface %q using %v", *iface, captureType)
 
 	statMap := swiss.New[statKey, statEntry](statsCapacity)
 
