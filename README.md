@@ -7,17 +7,17 @@
 
 ## About
 
-pktstat is a work in progress simple replacement for ncurses-based [pktstat](https://github.com/dleonard0/pktstat). On Linux platform it uses [AF_PACKET](https://doc.dpdk.org/guides/nics/af_packet.html), and on other platforms it uses regular PCAP live wire capture. It does not rely on any special/recent Linux kernel features (AF_PACKET is a feature from Linux kernel 2.2, from 1999) and is even cross-compatible with other Unix platforms such as Darwin, since it fallbacks to regular PCAP for non-Linux architectures.
+pktstat is a simple replacement for ncurses-based [pktstat](https://github.com/dleonard0/pktstat). On Linux platform it uses [AF_PACKET](https://doc.dpdk.org/guides/nics/af_packet.html), and on other platforms it uses generic PCAP live wire capture. It does not rely on any special/recent Linux kernel features (`AF_PACKET` is a feature from Linux kernel **v2.2**, from 1999) and is even cross-compatible with other Unix platforms such as Darwin, since it fallbacks to generic PCAP for non-Linux architectures.
 
 At the end of the execution program will display per-IP and per-protocol (IPv4, IPv6, TCP, UDP, ICMPv4 and ICMPv6) statistics sorted by per-connection bps, packets and (source-IP:port, destination-IP:port) tuples.
 
-Note that typically pktstat with AF_PACKET is reasonably fast and acceptable up to 1Gbps throughputs but for higher througputs it is better to use [pktstat-bpf solution](https://github.com/dkorunic/pktstat-bpf) that is implemented through Linux tc/eBPF, mostly in kernel and operates nearly at wire-speed with no impact to the production system.
+Note that typically pktstat with `AF_PACKET` is reasonably fast and works without packet loss up to several thousand packets per second but for higher traffic volume it is better to use [pktstat-bpf solution](https://github.com/dkorunic/pktstat-bpf) that is implemented as Linux eBPF program and operates nearly at wire-speed with no impact to the production system and/or no packet loss.
 
 ![Demo](demo.gif)
 
 ## Requirements
 
-Sniffing traffic typically requires root privileges or CAP_NET_ADMIN and CAP_NET_RAW [capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html):
+Sniffing traffic typically requires root privileges, but it is also possible to run rootless and set specific `CAP_NET_ADMIN` and `CAP_NET_RAW` [capabilities](https://man7.org/linux/man-pages/man7/capabilities.7.html):
 
 ```shell
 $ setcap cap_net_raw,cap_net_admin=eip pktstat
