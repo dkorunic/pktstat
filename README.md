@@ -49,4 +49,4 @@ With `--json` it is possible to get traffic statistics in JSON format.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=dkorunic/pktstat&type=Date)](https://star-history.com/#dkorunic/pktstat&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=dkorunic/pktstat,dkorunic/pktstat-bpf&type=Date)](https://star-history.com/#dkorunic/pktstat&dkorunic/pktstat-bpf&Date)
