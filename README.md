@@ -46,3 +46,7 @@ By default pktstat listens to all interfaces without any BPF filter. It is possi
 Timeout `--timeout` will stop execution after a specified time, but it is also possible to interrupt program with Ctrl C, SIGTERM or SIGINT.
 
 With `--json` it is possible to get traffic statistics in JSON format.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=dkorunic/pktstat&type=Date)](https://star-history.com/#dkorunic/pktstat&Date)
