@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/cockroachdb/swiss"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/goccy/go-json"
 )
 
 const (
@@ -42,8 +42,6 @@ type statJSON struct {
 	statKey
 	statEntry
 }
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // outputPlain generates output based on the statistics collected.
 //
