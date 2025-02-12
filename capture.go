@@ -58,7 +58,7 @@ type statChKey struct {
 // statCh: chan<- statChKey to send statistics.
 // totalBytes: *uint64 to track total bytes processed.
 // totalPackets: *uint64 to track total packets processed.
-func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes *uint64, totalPackets *uint64) {
+func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes, totalPackets *uint64) {
 	handle := initCapture(*iface, *snaplen, *bufferSize, *filter, *addVLAN)
 
 	source := gopacket.ZeroCopyPacketDataSource(handle)

@@ -26,7 +26,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/cockroachdb/swiss"
 	"github.com/goccy/go-json"
 )
 
@@ -49,16 +48,14 @@ type statJSON struct {
 // statMap - a map containing statistical data.
 // totalPackets - total number of packets.
 // totalBytes - total number of bytes.
-func outputPlain(startTime time.Time, statMap *swiss.Map[statKey, statEntry], totalPackets uint64, totalBytes uint64) {
+func outputPlain(startTime time.Time, statMap StatMap, totalPackets, totalBytes uint64) {
 	dur := time.Since(startTime).Seconds()
 
 	keySlice := calcBitrate(statMap, dur)
 
 	for _, k := range keySlice {
-		v, _ := statMap.Get(k)
-
 		fmt.Printf("bitrate: %v, packets: %d, bytes: %d, proto: %v, src: %v:%v, dst: %v:%v\n",
-			formatBitrate(v.Bitrate), v.Packets, v.Size, k.Proto.String(), k.SrcIP, k.SrcPort, k.DstIP, k.DstPort)
+			formatBitrate(statMap[k].Bitrate), statMap[k].Packets, statMap[k].Size, k.Proto.String(), k.SrcIP, k.SrcPort, k.DstIP, k.DstPort)
 	}
 
 	fmt.Printf("\nRead total packets: %d, total bytes: %d in %0.2f seconds\n", totalPackets, totalBytes, dur)
@@ -69,7 +66,7 @@ func outputPlain(startTime time.Time, statMap *swiss.Map[statKey, statEntry], to
 // statMap: the map containing statistics entries.
 // totalPackets: the total number of packets.
 // totalBytes: the total number of bytes.
-func outputJSON(startTime time.Time, statMap *swiss.Map[statKey, statEntry], _ uint64, _ uint64) {
+func outputJSON(startTime time.Time, statMap StatMap, _, _ uint64) {
 	dur := time.Since(startTime).Seconds()
 
 	keySlice := calcBitrate(statMap, dur)
@@ -77,10 +74,8 @@ func outputJSON(startTime time.Time, statMap *swiss.Map[statKey, statEntry], _ u
 	statJSONs := make([]statJSON, 0, len(keySlice))
 
 	for _, k := range keySlice {
-		v, _ := statMap.Get(k)
-
 		statJSONs = append(statJSONs, statJSON{
-			statEntry: v,
+			statEntry: statMap[k],
 			statKey:   k,
 		})
 	}
@@ -97,25 +92,20 @@ func outputJSON(startTime time.Time, statMap *swiss.Map[statKey, statEntry], _ u
 // - dur: a float64 representing the duration for bitrate calculation
 // Returns:
 // - []statKey: a slice of statKeys sorted by bitrate in descending order
-func calcBitrate(statMap *swiss.Map[statKey, statEntry], dur float64) []statKey {
-	keySlice := make([]statKey, 0, statMap.Len())
+func calcBitrate(statMap StatMap, dur float64) []statKey {
+	keySlice := make([]statKey, 0, len(statMap))
 
 	// calculate bitrates and prepare keys for sort
-	statMap.All(func(k statKey, v statEntry) bool {
+	for k, v := range statMap {
 		v.Bitrate = 8 * float64(v.Size) / dur
 
 		keySlice = append(keySlice, k)
-		statMap.Put(k, v)
-
-		return true
-	})
+		statMap[k] = v
+	}
 
 	// sort by bitrate descending
 	sort.Slice(keySlice, func(i, j int) bool {
-		v1, _ := statMap.Get(keySlice[i])
-		v2, _ := statMap.Get(keySlice[j])
-
-		return v1.Bitrate > v2.Bitrate
+		return statMap[keySlice[i]].Bitrate > statMap[keySlice[j]].Bitrate
 	})
 
 	return keySlice

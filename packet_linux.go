@@ -56,7 +56,7 @@ type afpacketHandle struct {
 // Returns:
 // - *afpacketHandle: the newly created afpacketHandle.
 // - error: an error if any.
-func newAfpacketHandle(device string, snaplen int, block_size int, num_blocks int,
+func newAfpacketHandle(device string, snaplen, block_size, num_blocks int,
 	useVLAN bool, timeout time.Duration,
 ) (*afpacketHandle, error) {
 	h := &afpacketHandle{}
@@ -151,8 +151,8 @@ func (h *afpacketHandle) SocketStats() (as afpacket.SocketStats, asv afpacket.So
 //
 // Parameters: targetSizeMb int, snaplen int, pageSize int.
 // Returns: frameSize int, blockSize int, numBlocks int, err error.
-func afpacketComputeSize(targetSizeMb int, snaplen int, pageSize int) (
-	frameSize int, blockSize int, numBlocks int, err error,
+func afpacketComputeSize(targetSizeMb, snaplen, pageSize int) (
+	frameSize, blockSize, numBlocks int, err error,
 ) {
 	if snaplen < pageSize {
 		frameSize = pageSize / (pageSize / snaplen)
@@ -184,7 +184,7 @@ func afpacketComputeSize(targetSizeMb int, snaplen int, pageSize int) (
 // Returns:
 //
 //	*afpacketHandle - the initialized afpacketHandle for packet capturing
-func initCapture(iface string, snaplen int, bufferSize int, filter string, addVLAN bool) *afpacketHandle {
+func initCapture(iface string, snaplen, bufferSize int, filter string, addVLAN bool) *afpacketHandle {
 	szFrame, szBlock, numBlocks, err := afpacketComputeSize(bufferSize, snaplen, os.Getpagesize())
 	if err != nil {
 		log.Fatal(err)

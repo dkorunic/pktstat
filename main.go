@@ -33,7 +33,6 @@ import (
 	"time"
 
 	"github.com/KimMachineGun/automemlimit/memlimit"
-	"github.com/cockroachdb/swiss"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -49,6 +48,8 @@ var (
 	GitDirty  = ""
 	BuildTime = ""
 )
+
+type StatMap map[statKey]statEntry
 
 // init initializes the GitTag, GitCommit, GitDirty, and BuildTime variables.
 //
@@ -81,7 +82,7 @@ func main() {
 
 	log.Printf("Starting on interface %q using %v", *iface, captureType)
 
-	statMap := swiss.New[statKey, statEntry](statsCapacity)
+	statMap := make(StatMap, statsCapacity)
 
 	c1, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -99,14 +100,14 @@ func main() {
 		defer wg.Done()
 
 		for k := range statCh {
-			v, ok := statMap.Get(k.key)
+			v, ok := statMap[k.key]
 			if !ok {
 				v = statEntry{}
 			}
 
 			v.Size += k.size
 			v.Packets++
-			statMap.Put(k.key, v)
+			statMap[k.key] = v
 		}
 	}()
 
