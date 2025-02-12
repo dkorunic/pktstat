@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"github.com/KimMachineGun/automemlimit/memlimit"
+	"github.com/hako/durafmt"
 	"go.uber.org/automaxprocs/maxprocs"
 )
 
@@ -80,7 +81,12 @@ func main() {
 		),
 	)
 
-	log.Printf("Starting on interface %q using %v", *iface, captureType)
+	if *timeout == 0 {
+		log.Printf("Starting on interface %q using %v", *iface, captureType)
+	} else {
+		log.Printf("Starting on interface %q using %v, listening for %v", *iface, captureType,
+			durafmt.Parse(*timeout))
+	}
 
 	statMap := make(StatMap, statsCapacity)
 
