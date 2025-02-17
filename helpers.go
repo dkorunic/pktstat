@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"strings"
 )
 
 // netip2Addr description of the Go function.
@@ -54,4 +55,49 @@ func formatBitrate(b float64) string {
 	}
 
 	return fmt.Sprintf("%.2fTbps", b/Tbps)
+}
+
+// findFirstEtherIface searches for the first available Ethernet interface.
+//
+// It iterates over all network interfaces and checks for interfaces that are up, not loopback,
+// and do not contain "docker" in their name. For each valid interface, it retrieves the associated
+// IP addresses and returns the name of the first interface that has a valid IPv4 or IPv6 address.
+// If no suitable interface is found, it returns the default interface name.
+func findFirstEtherIface() string {
+	i, err := net.Interfaces()
+	if err != nil {
+		return defaultIface
+	}
+
+	for _, f := range i {
+		if (f.Flags&net.FlagUp == 0) || (f.Flags&net.FlagLoopback) != 0 {
+			continue
+		}
+
+		if strings.Contains(f.Name, "docker") {
+			continue
+		}
+
+		addrs, err := f.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, a := range addrs {
+			var ip net.IP
+
+			switch v := a.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+
+			if ip != nil && ip.To16() != nil {
+				return f.Name
+			}
+		}
+	}
+
+	return defaultIface
 }

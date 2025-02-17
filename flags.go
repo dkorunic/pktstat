@@ -35,7 +35,7 @@ const (
 	defaultBPFFilter  = ""
 	defaultSnapLen    = 0
 	defaultIface      = "any"
-	defaultTimeout    = 0
+	defaultTimeout    = 10 * time.Minute
 )
 
 var (
@@ -58,7 +58,7 @@ func parseFags() {
 	bufferSize = fs.Int('b', "bufsize", defaultBufferSize, "interface buffersize in MB")
 
 	filter = fs.String('f', "filter", defaultBPFFilter, "BPF filter")
-	iface = fs.String('i', "iface", defaultIface, "interface to read from")
+	iface = fs.String('i', "iface", findFirstEtherIface(), "interface to read from")
 
 	timeout = fs.Duration('t', "timeout", defaultTimeout, "timeout for packet capture")
 
