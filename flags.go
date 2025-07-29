@@ -42,7 +42,7 @@ var (
 	iface, filter                      *string
 	snaplen, bufferSize                *int
 	addVLAN, version, help, jsonOutput *bool
-	timeout                            *time.Duration
+	timeout, interval                  *time.Duration
 )
 
 func parseFags() {
@@ -61,6 +61,7 @@ func parseFags() {
 	iface = fs.String('i', "iface", findFirstEtherIface(), "interface to read from")
 
 	timeout = fs.Duration('t', "timeout", defaultTimeout, "timeout for packet capture")
+	interval = fs.Duration('l', "interval", 0, "interval between packet capture output")
 
 	var err error
 
@@ -85,5 +86,9 @@ func parseFags() {
 
 	if *snaplen <= 0 {
 		*snaplen = 65535
+	}
+
+	if *timeout > 0 && *interval > 0 && *interval >= *timeout {
+		*interval = 0
 	}
 }

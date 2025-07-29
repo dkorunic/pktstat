@@ -124,12 +124,16 @@ func main() {
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	go func() {
-		s := <-signalCh
-		fmt.Fprintf(os.Stderr, "Received %v signal, trying to exit...\n", s)
-		cancel()
-		close(statCh)
-	}()
+	go func(ctx context.Context) {
+		select {
+		case <-ctx.Done():
+			return
+		case s := <-signalCh:
+			fmt.Fprintf(os.Stderr, "Received %v signal, trying to exit...\n", s)
+			cancel()
+			close(statCh)
+		}
+	}(c1)
 
 	if *timeout > 0 {
 		go func() {
@@ -139,11 +143,21 @@ func main() {
 		}()
 	}
 
+	if *interval > 0 {
+		go func(ctx context.Context) {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					time.Sleep(*interval)
+					outputStats(startTime, statMap, totalPackets, totalBytes)
+				}
+			}
+		}(c1)
+	}
+
 	wg.Wait()
 
-	if *jsonOutput {
-		outputJSON(startTime, statMap, totalPackets, totalBytes)
-	} else {
-		outputPlain(startTime, statMap, totalPackets, totalBytes)
-	}
+	outputStats(startTime, statMap, totalPackets, totalBytes)
 }

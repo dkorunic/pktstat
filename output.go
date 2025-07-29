@@ -126,3 +126,17 @@ func (s *statJSON) MarshalJSON() ([]byte, error) {
 		Proto: s.Proto.String(),
 	})
 }
+
+// outputStats outputs the collected statistics in either plain text or JSON format.
+//
+// startTime: the start time of the statistics collection.
+// statMap: a map containing statistical data.
+// totalPackets: total number of packets.
+// totalBytes: total number of bytes.
+func outputStats(startTime time.Time, statMap StatMap, totalPackets uint64, totalBytes uint64) {
+	if *jsonOutput {
+		outputJSON(startTime, statMap, totalPackets, totalBytes)
+	} else {
+		outputPlain(startTime, statMap, totalPackets, totalBytes)
+	}
+}

@@ -30,15 +30,16 @@ NAME
   pktstat
 
 FLAGS
-  -?, --help               display help
-  -v, --add_vlan           if true, add VLAN header
-  -j, --json               if true, output in JSON format
-      --version            display program version
-  -s, --snaplen INT        snaplen (if <= 0 uses 65535) (default: 0)
-  -b, --bufsize INT        interface buffersize in MB (default: 8)
-  -f, --filter STRING      BPF filter
-  -i, --iface STRING       interface to read from (default: any)
-  -t, --timeout DURATION   timeout for packet capture (default: 0s)
+  -?, --help                display help
+  -v, --add_vlan            if true, add VLAN header
+  -j, --json                if true, output in JSON format
+      --version             display program version
+  -s, --snaplen INT         snaplen (if <= 0 uses 65535) (default: 0)
+  -b, --bufsize INT         interface buffersize in MB (default: 8)
+  -f, --filter STRING       BPF filter
+  -i, --iface STRING        interface to read from (default: en0)
+  -t, --timeout DURATION    timeout for packet capture (default: 10m0s)
+  -l, --interval DURATION   interval between packet capture output (default: 0s)
 ```
 
 By default pktstat listens to all interfaces without any BPF filter. It is possible to specify interface with `--iface` and specify a BPF filter either including or excluding needed traffic, for instance `--filter "not port 22"`.
@@ -46,6 +47,8 @@ By default pktstat listens to all interfaces without any BPF filter. It is possi
 Timeout `--timeout` will stop execution after a specified time, but it is also possible to interrupt program with Ctrl C, SIGTERM or SIGINT.
 
 With `--json` it is possible to get traffic statistics in JSON format.
+
+Interval `--interval` when it is greater than zero (and less than timeout duration) will make program output statistics for every such duration until program exit.
 
 ## Star History
 
