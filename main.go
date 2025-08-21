@@ -101,10 +101,8 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1) //nolint:wsl
-	go func() {
-		defer wg.Done()
-
+	//nolint:wsl
+	wg.Go(func() {
 		for k := range statCh {
 			v, ok := statMap[k.key]
 			if !ok {
@@ -115,7 +113,7 @@ func main() {
 			v.Packets++
 			statMap[k.key] = v
 		}
-	}()
+	})
 
 	go func(ctx context.Context) {
 		runCapture(ctx, statCh, &totalBytes, &totalPackets)
