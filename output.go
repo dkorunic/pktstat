@@ -24,6 +24,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"sync/atomic"
 	"time"
 
 	"github.com/goccy/go-json"
@@ -48,7 +49,7 @@ type statJSON struct {
 // statMap - a map containing statistical data.
 // totalPackets - total number of packets.
 // totalBytes - total number of bytes.
-func outputPlain(startTime time.Time, statMap StatMap, totalPackets, totalBytes uint64) {
+func outputPlain(startTime time.Time, statMap StatMap, totalPackets, totalBytes *atomic.Uint64) {
 	dur := time.Since(startTime).Seconds()
 
 	keySlice := calcBitrate(statMap, dur)
@@ -58,7 +59,7 @@ func outputPlain(startTime time.Time, statMap StatMap, totalPackets, totalBytes 
 			formatBitrate(statMap[k].Bitrate), statMap[k].Packets, statMap[k].Size, k.Proto.String(), k.SrcIP, k.SrcPort, k.DstIP, k.DstPort)
 	}
 
-	fmt.Printf("\nRead total packets: %d, total bytes: %d in %0.2f seconds\n", totalPackets, totalBytes, dur)
+	fmt.Printf("\nRead total packets: %d, total bytes: %d in %0.2f seconds\n", totalPackets.Load(), totalBytes.Load(), dur)
 }
 
 // outputJSON generates a JSON output based on the provided statistics map and time duration.
@@ -66,7 +67,7 @@ func outputPlain(startTime time.Time, statMap StatMap, totalPackets, totalBytes 
 // statMap: the map containing statistics entries.
 // totalPackets: the total number of packets.
 // totalBytes: the total number of bytes.
-func outputJSON(startTime time.Time, statMap StatMap, _, _ uint64) {
+func outputJSON(startTime time.Time, statMap StatMap, _, _ *atomic.Uint64) {
 	dur := time.Since(startTime).Seconds()
 
 	keySlice := calcBitrate(statMap, dur)
@@ -133,7 +134,7 @@ func (s *statJSON) MarshalJSON() ([]byte, error) {
 // statMap: a map containing statistical data.
 // totalPackets: total number of packets.
 // totalBytes: total number of bytes.
-func outputStats(startTime time.Time, statMap StatMap, totalPackets uint64, totalBytes uint64) {
+func outputStats(startTime time.Time, statMap StatMap, totalPackets, totalBytes *atomic.Uint64) {
 	if *jsonOutput {
 		outputJSON(startTime, statMap, totalPackets, totalBytes)
 	} else {

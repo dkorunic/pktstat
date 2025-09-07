@@ -24,6 +24,7 @@ package main
 import (
 	"context"
 	"net/netip"
+	"sync/atomic"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -56,9 +57,9 @@ type statChKey struct {
 //
 // ctx: context.Context for cancellation signal.
 // statCh: chan<- statChKey to send statistics.
-// totalBytes: *uint64 to track total bytes processed.
-// totalPackets: *uint64 to track total packets processed.
-func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes, totalPackets *uint64) {
+// totalBytes: *atomic.Uint64 to track total bytes processed.
+// totalPackets: *atomic.Uint64 to track total packets processed.
+func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes, totalPackets *atomic.Uint64) {
 	handle := initCapture(*iface, *snaplen, *bufferSize, *filter, *addVLAN)
 
 	source := gopacket.ZeroCopyPacketDataSource(handle)
@@ -125,11 +126,13 @@ func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes, totalP
 
 		packetLen := uint64(len(data))
 
-		*totalBytes += packetLen
-		*totalPackets++
+		totalBytes.Add(packetLen)
+		totalPackets.Add(1)
 
 		select {
 		case <-ctx.Done():
+			close(statCh)
+
 			return
 		default:
 		}

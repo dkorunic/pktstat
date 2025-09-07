@@ -29,6 +29,7 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -38,8 +39,8 @@ import (
 )
 
 const (
-	statsCapacity = 8192
-	queueCapacity = 2048
+	statsCapacity = 131072
+	queueCapacity = 8192
 	maxMemRatio   = 0.9
 )
 
@@ -89,6 +90,7 @@ func main() {
 	}
 
 	statMap := make(StatMap, statsCapacity)
+	statMapLock := sync.Mutex{}
 
 	c1, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -96,14 +98,17 @@ func main() {
 	statCh := make(chan statChKey, queueCapacity)
 
 	startTime := time.Now()
-	totalBytes := uint64(0)
-	totalPackets := uint64(0)
+
+	totalBytes := atomic.Uint64{}
+	totalPackets := atomic.Uint64{}
 
 	var wg sync.WaitGroup
 
 	//nolint:wsl
 	wg.Go(func() {
 		for k := range statCh {
+			statMapLock.Lock()
+
 			v, ok := statMap[k.key]
 			if !ok {
 				v = statEntry{}
@@ -112,12 +117,14 @@ func main() {
 			v.Size += k.size
 			v.Packets++
 			statMap[k.key] = v
+
+			statMapLock.Unlock()
 		}
 	})
 
-	go func(ctx context.Context) {
-		runCapture(ctx, statCh, &totalBytes, &totalPackets)
-	}(c1)
+	wg.Go(func() {
+		runCapture(c1, statCh, &totalBytes, &totalPackets)
+	})
 
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -129,7 +136,6 @@ func main() {
 		case s := <-signalCh:
 			fmt.Fprintf(os.Stderr, "Received %v signal, trying to exit...\n", s)
 			cancel()
-			close(statCh)
 		}
 	}(c1)
 
@@ -137,7 +143,6 @@ func main() {
 		go func() {
 			time.Sleep(*timeout)
 			cancel()
-			close(statCh)
 		}()
 	}
 
@@ -149,7 +154,10 @@ func main() {
 					return
 				default:
 					time.Sleep(*interval)
-					outputStats(startTime, statMap, totalPackets, totalBytes)
+
+					statMapLock.Lock()
+					outputStats(startTime, statMap, &totalPackets, &totalBytes)
+					statMapLock.Unlock()
 				}
 			}
 		}(c1)
@@ -157,5 +165,7 @@ func main() {
 
 	wg.Wait()
 
-	outputStats(startTime, statMap, totalPackets, totalBytes)
+	statMapLock.Lock()
+	outputStats(startTime, statMap, &totalPackets, &totalBytes)
+	statMapLock.Unlock()
 }
