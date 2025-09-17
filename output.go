@@ -22,12 +22,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"sync/atomic"
 	"time"
-
-	"github.com/goccy/go-json"
 )
 
 const (

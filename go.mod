@@ -4,12 +4,11 @@ go 1.25
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.4
-	github.com/goccy/go-json v0.10.5
 	github.com/google/gopacket v1.1.19
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/peterbourgon/ff/v4 v4.0.0-beta.1
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/net v0.43.0
+	golang.org/x/net v0.44.0
 )
 
 require (
