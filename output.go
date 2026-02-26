@@ -24,7 +24,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
+	"slices"
 	"sync/atomic"
 	"time"
 )
@@ -54,8 +54,10 @@ func outputPlain(startTime time.Time, statMap StatMap, totalPackets, totalBytes 
 	keySlice := calcBitrate(statMap, dur)
 
 	for _, k := range keySlice {
+		v := statMap[k]
+
 		fmt.Printf("bitrate: %v, packets: %d, bytes: %d, proto: %v, src: %v:%v, dst: %v:%v\n",
-			formatBitrate(statMap[k].Bitrate), statMap[k].Packets, statMap[k].Size, k.Proto.String(), k.SrcIP, k.SrcPort, k.DstIP, k.DstPort)
+			formatBitrate(v.Bitrate), v.Packets, v.Size, k.Proto.String(), k.SrcIP, k.SrcPort, k.DstIP, k.DstPort)
 	}
 
 	fmt.Printf("\nRead total packets: %d, total bytes: %d in %0.2f seconds\n", totalPackets.Load(), totalBytes.Load(), dur)
@@ -82,7 +84,7 @@ func outputJSON(startTime time.Time, statMap StatMap, _, _ *atomic.Uint64) {
 
 	out, _ := json.Marshal(statJSONs)
 
-	fmt.Printf("%v\n", string(out))
+	fmt.Printf("%s\n", out)
 }
 
 // calcBitrate calculates the bitrate for each statEntry in the given statMap based on the duration provided, and returns a slice of statKeys sorted by bitrate in descending order.
@@ -93,20 +95,38 @@ func outputJSON(startTime time.Time, statMap StatMap, _, _ *atomic.Uint64) {
 // Returns:
 // - []statKey: a slice of statKeys sorted by bitrate in descending order
 func calcBitrate(statMap StatMap, dur float64) []statKey {
-	keySlice := make([]statKey, 0, len(statMap))
-
-	// calculate bitrates and prepare keys for sort
-	for k, v := range statMap {
-		v.Bitrate = 8 * float64(v.Size) / dur
-
-		keySlice = append(keySlice, k)
-		statMap[k] = v
+	type entry struct {
+		key     statKey
+		bitrate float64
 	}
 
-	// sort by bitrate descending
-	sort.Slice(keySlice, func(i, j int) bool {
-		return statMap[keySlice[i]].Bitrate > statMap[keySlice[j]].Bitrate
+	entries := make([]entry, 0, len(statMap))
+
+	// calculate bitrates and prepare entries for sort
+	for k, v := range statMap {
+		v.Bitrate = 8 * float64(v.Size) / dur
+		statMap[k] = v
+		entries = append(entries, entry{key: k, bitrate: v.Bitrate})
+	}
+
+	// sort by bitrate descending using plain float64 field — avoids map lookups in comparator
+	slices.SortFunc(entries, func(a, b entry) int {
+		if a.bitrate > b.bitrate {
+			return -1
+		}
+
+		if a.bitrate < b.bitrate {
+			return 1
+		}
+
+		return 0
 	})
+
+	keySlice := make([]statKey, len(entries))
+
+	for i, e := range entries {
+		keySlice[i] = e.key
+	}
 
 	return keySlice
 }

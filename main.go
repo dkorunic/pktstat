@@ -39,9 +39,11 @@ import (
 )
 
 const (
-	statsCapacity = 131072
-	queueCapacity = 8192
-	maxMemRatio   = 0.9
+	statsCapacity  = 131072
+	queueCapacity  = 8192
+	aggregateBatch = 256
+	pollTimeout    = 100 * time.Millisecond
+	maxMemRatio    = 0.9
 )
 
 var (
@@ -106,19 +108,37 @@ func main() {
 
 	//nolint:wsl
 	wg.Go(func() {
-		for k := range statCh {
-			statMapLock.Lock()
+		batch := make([]statChKey, 0, aggregateBatch)
 
-			v, ok := statMap[k.key]
-			if !ok {
-				v = statEntry{}
+		for k := range statCh {
+			batch = append(batch, k)
+
+		drain:
+			for len(batch) < aggregateBatch {
+				select {
+				case more, ok := <-statCh:
+					if !ok {
+						break drain
+					}
+
+					batch = append(batch, more)
+				default:
+					break drain
+				}
 			}
 
-			v.Size += k.size
-			v.Packets++
-			statMap[k.key] = v
+			statMapLock.Lock()
+
+			for _, item := range batch {
+				v := statMap[item.key]
+				v.Size += item.size
+				v.Packets++
+				statMap[item.key] = v
+			}
 
 			statMapLock.Unlock()
+
+			batch = batch[:0]
 		}
 	})
 
@@ -140,21 +160,19 @@ func main() {
 	}(c1)
 
 	if *timeout > 0 {
-		go func() {
-			time.Sleep(*timeout)
-			cancel()
-		}()
+		time.AfterFunc(*timeout, cancel)
 	}
 
 	if *interval > 0 {
 		go func(ctx context.Context) {
+			ticker := time.NewTicker(*interval)
+			defer ticker.Stop()
+
 			for {
 				select {
 				case <-ctx.Done():
 					return
-				default:
-					time.Sleep(*interval)
-
+				case <-ticker.C:
 					statMapLock.Lock()
 					outputStats(startTime, statMap, &totalPackets, &totalBytes)
 					statMapLock.Unlock()

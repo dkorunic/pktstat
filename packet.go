@@ -45,7 +45,7 @@ const (
 //
 //	*pcap.Handle - the initialized pcap handle
 func initCapture(iface string, snaplen, _ int, filter string, _ bool) *pcap.Handle {
-	handle, err := pcap.OpenLive(iface, int32(snaplen), true, pcap.BlockForever)
+	handle, err := pcap.OpenLive(iface, int32(snaplen), true, pollTimeout)
 	if err != nil {
 		log.Fatal(err)
 	}

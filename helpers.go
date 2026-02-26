@@ -24,18 +24,8 @@ package main
 import (
 	"fmt"
 	"net"
-	"net/netip"
 	"strings"
 )
-
-// netip2Addr description of the Go function.
-//
-// Takes a net.IP parameter and returns a netip.Addr.
-func netip2Addr(ip net.IP) netip.Addr {
-	addr, _ := netip.AddrFromSlice(ip)
-
-	return addr
-}
 
 // formatBitrate formats the given bitrate value into a string representation.
 //

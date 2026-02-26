@@ -81,12 +81,6 @@ func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes, totalP
 	decodedLayers := make([]gopacket.LayerType, 0, layersCapacity)
 
 	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
 		// AF_PACKET capture on Linux or regular PCAP wire capture on everything else
 		data, _, err := source.ZeroCopyReadPacketData()
 		if err != nil {
@@ -105,11 +99,11 @@ func runCapture(ctx context.Context, statCh chan<- statChKey, totalBytes, totalP
 
 			switch t {
 			case layers.LayerTypeIPv4:
-				k.SrcIP = netip2Addr(ip4.SrcIP)
-				k.DstIP = netip2Addr(ip4.DstIP)
+				k.SrcIP = netip.AddrFrom4([4]byte(ip4.SrcIP))
+				k.DstIP = netip.AddrFrom4([4]byte(ip4.DstIP))
 			case layers.LayerTypeIPv6:
-				k.SrcIP = netip2Addr(ip6.SrcIP)
-				k.DstIP = netip2Addr(ip6.DstIP)
+				k.SrcIP = netip.AddrFrom16([16]byte(ip6.SrcIP))
+				k.DstIP = netip.AddrFrom16([16]byte(ip6.DstIP))
 			case layers.LayerTypeTCP:
 				k.SrcPort = uint16(tcp.SrcPort)
 				k.DstPort = uint16(tcp.DstPort)

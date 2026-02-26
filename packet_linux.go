@@ -103,7 +103,7 @@ func (h *afpacketHandle) SetBPFFilter(filter string, snaplen int) (err error) {
 		return err
 	}
 
-	bpfIns := []bpf.RawInstruction{}
+	bpfIns := make([]bpf.RawInstruction, 0, len(pcapBPF))
 	for _, ins := range pcapBPF {
 		bpfIns2 := bpf.RawInstruction{
 			Op: ins.Code,
@@ -112,9 +112,6 @@ func (h *afpacketHandle) SetBPFFilter(filter string, snaplen int) (err error) {
 			K:  ins.K,
 		}
 		bpfIns = append(bpfIns, bpfIns2)
-	}
-	if h.TPacket.SetBPF(bpfIns); err != nil {
-		return err
 	}
 
 	return h.TPacket.SetBPF(bpfIns)
@@ -190,7 +187,7 @@ func initCapture(iface string, snaplen, bufferSize int, filter string, addVLAN b
 		log.Fatal(err)
 	}
 
-	afpacketHandle, err := newAfpacketHandle(iface, szFrame, szBlock, numBlocks, addVLAN, pcap.BlockForever)
+	afpacketHandle, err := newAfpacketHandle(iface, szFrame, szBlock, numBlocks, addVLAN, pollTimeout)
 	if err != nil {
 		log.Fatal(err)
 	}
