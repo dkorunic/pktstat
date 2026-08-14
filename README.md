@@ -53,4 +53,4 @@ By default, pktstat listens on all interfaces with no BPF filter applied. Use `-
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=dkorunic/pktstat,dkorunic/pktstat-bpf&type=Date)](https://star-history.com/#dkorunic/pktstat&dkorunic/pktstat-bpf&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=dkorunic/pktstat,dkorunic/pktstat-bpf&type=Date)](https://star-history.com/#dkorunic/pktstat&dkorunic/pktstat-bpf&Date)
